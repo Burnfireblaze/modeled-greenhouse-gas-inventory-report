@@ -190,4 +190,58 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig("figures/ghg_emissions_2023.png", dpi=300, bbox_inches="tight")
 
-plt.show()
+
+
+# =====================================================
+# SCOPE AGGREGATION (ROBUST VERSION)
+# =====================================================
+
+analysis_df = df.drop("TOTAL CAMPUS EMISSIONS").copy()
+
+# Convert index to string explicitly
+analysis_df["Source"] = analysis_df.index.astype(str)
+
+# Extract Scope using split instead of regex
+analysis_df["Scope"] = analysis_df["Source"].str.split(" - ").str[0]
+
+# Group by Scope
+scope_summary = (
+    analysis_df
+    .groupby("Scope")["Metric Tons CO2e"]
+    .sum()
+    .reset_index()
+)
+
+print("\nEmissions by Scope\n")
+print(scope_summary)
+
+# =====================================================
+# SCOPE BAR CHART (AUTO GENERATED FROM DATAFRAME)
+# =====================================================
+
+plt.figure()
+plt.bar(scope_summary["Scope"], scope_summary["Metric Tons CO2e"])
+
+plt.ylabel("Metric Tons CO2e")
+plt.title("2023 Modeled Emissions by GHG Scope")
+plt.tight_layout()
+
+plt.savefig("figures/ghg_by_scope.png", dpi=300, bbox_inches="tight")
+plt.close()
+
+# =====================================================
+# PIE CHART (OPTIONAL, CLEANER FOR REPORTS)
+# =====================================================
+
+plt.figure()
+plt.pie(
+    scope_summary["Metric Tons CO2e"],
+    labels=scope_summary["Scope"],
+    autopct="%1.1f%%"
+)
+
+plt.title("Share of Emissions by Scope (2023)")
+plt.tight_layout()
+
+plt.savefig("figures/ghg_scope_pie.png", dpi=300, bbox_inches="tight")
+plt.close()
